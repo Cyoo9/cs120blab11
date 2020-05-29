@@ -1,7 +1,7 @@
 /*      Author: Taeho Yoo
  *  Partner(s) Name: 
  *      Lab Section: 23
-*      Assignment: Lab #11  Exercise #1
+*      Assignment: Lab #11  Exercise #2
  *      Exercise Description: [optional - include for your own benefit]
  *
  *      I acknowledge all content contained herein, excluding template or example
@@ -32,34 +32,49 @@
 	asm("nop");
 	return('\0');
 }*/
+
+enum States {Start, First, Second, Third} state;
+unsigned char i; //36 characters total in the string
+void Tick() {
+	switch(state) {
+		case Start:
+			i = 16;
+			state = First;
+			break;
+		case First:
+			if(i > 0) {
+				LCD_DisplayString(i, "CS120B is Legend... wait for it DARY!");
+				i--;
+				state = First;
+			}
+			else {	
+				LCD_DisplayString(1, "S120B is Legend.");
+				i = 16;
+				state = Second;
+			}	
+			break;
+		case Second:
+			if(i > 0) {
+				LCD_DisplayString(i, "
+		case Third:
+		default:
+			break;
+	}
+
+
+			
 int main(void) {
     /* Insert DDR and PORT initializations */
-	unsigned char x;
-	DDRB = 0xFF; PORTB = 0x00;
-	DDRA = 0xF0; PORTA = 0x0F;
+	
+	DDRC = 0xFF; PORTC = 0x00;
+	DDRA = 0x00; PORTA = 0xFF;
+	LCD_init();
+	TimerSet(100);
+	TimerOn();
 	while(1) {
-		x = GetKeypadKey();
-		switch(x) {
-			case '\0': PORTB = 0x00; break;
-			case '1': PORTB = 0x01; break;
-			case '2': PORTB = 0x02; break;
-			case '3': PORTB = 0x03; break;
-			case '4': PORTB = 0x04; break;
-			case '5': PORTB = 0x05; break;
-			case '6': PORTB = 0x06; break;
-			case '7': PORTB = 0x07; break;
-			case '8': PORTB = 0x08; break;
-			case '9': PORTB = 0x09; break;
-			case 'A': PORTB = 0x0A; break;
-			case 'B': PORTB = 0x0B; break;
-			case 'C': PORTB = 0x0C; break;
-			case 'D': PORTB = 0x0D; break;
-			case '*': PORTB = 0x0E; break;
-			case '0': PORTB = 0x00; break;
-			case '#': PORTB = 0x0F; break;
-
-			default: PORTB = 0x00; break;
-		}
+		Tick();
+		while(!TimerFlag);
+		TimerFlag = 0;
 	}
 	return 0;
 }
