@@ -1,7 +1,7 @@
 /*      Author: Taeho Yoo
  *  Partner(s) Name: 
  *      Lab Section: 23
-*      Assignment: Lab #11  Exercise #2
+*      Assignment: Lab #11  Exercise #3
  *      Exercise Description: [optional - include for your own benefit]
  *
  *      I acknowledge all content contained herein, excluding template or example
@@ -17,62 +17,80 @@
 
 #endif
 
-/*unsigned char GetKeypadKey() {
-	PORTA = 0xEF;
-	asm("nop");
-	if(GetBit(PINA, 0) == 0) { return('1'); }
-	if(GetBit(PINA, 1) == 0) { return('4'); }
-	if(GetBit(PINA, 2) == 0) { return('7'); }
-	if(GetBit(PINA, 3) == 0) { return('*'); }
+unsigned char output;
 
-	PORTA = 0xDF;
-	asm("nop");
-	if(GetBit(PINA,0) == 0) { return('2'); }
-	PORTA = 0xBF;
-	asm("nop");
-	return('\0');
-}*/
+enum keypadButtonSM_States { keypad_wait, keypad_press, keypad_release };
 
-enum States {Start, First, Second, Third} state;
-unsigned char i; //36 characters total in the string
-void Tick() {
+int keypadButtonSMTick(int state) {
+	unsigned char key = GetKeypadKey();
+	output = '\0';
 	switch(state) {
-		case Start:
-			i = 16;
-			state = First;
-			break;
-		case First:
-			if(i > 0) {
-				LCD_DisplayString(i, "CS120B is Legend... wait for it DARY!");
-				i--;
-				state = First;
+		case keypad_wait:
+			if(key != '\0') {
+				state = keypad_press;
 			}
-			else {	
-				LCD_DisplayString(1, "S120B is Legend.");
-				i = 16;
-				state = Second;
-			}	
+			else {
+				state = keypad_wait;
+			}
 			break;
-		case Second:
-			if(i > 0) {
-				LCD_DisplayString(i, "
-		case Third:
+		case keypad_press:
+			state = keypad_release;
+			break;
+		case keypad_release:
+			if(key == '\0') {
+				state = keypad_wait;
+			}
+			else {
+				state = keypad_press;
+			}
+			break;
 		default:
+			state = keypad_wait;
 			break;
 	}
+	switch(state) {
+		case keypad_wait: break;
+		case keypad_press:
+				 output = key;
+				 break;
+		case keypad_release: break;
+	}
+	LCD_Cursor(0);
+	LCD_WriteData(output);
+       return state;
+}
 
-
-			
 int main(void) {
     /* Insert DDR and PORT initializations */
-	
+	DDRD = 0xFF; PORTD = 0x00;
+	DDRA = 0xF0; PORTA = 0x0F;
 	DDRC = 0xFF; PORTC = 0x00;
-	DDRA = 0x00; PORTA = 0xFF;
+
 	LCD_init();
-	TimerSet(100);
+        task task1, task2;
+	task *tasks[] = { &task1, &task2 };
+	const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
+
+	const char start = -1;
+
+	task1.state = start;
+	task1.period = 50;
+	task1.elapsedTime = task1.period;
+	task1.TickFct = &keypadButtonSMTick;
+
+	TimerSet(50);
 	TimerOn();
+
+	unsigned short i;
+
 	while(1) {
-		Tick();
+		for(i = 0; i < numTasks; i++) {
+			if(tasks[i]->elapsedTime == tasks[i]->period) {
+				tasks[i]->state = tasks[i]->TickFct(tasks[i]->state);
+				tasks[i]->elapsedTime = 0;
+			}
+			tasks[i]->elapsedTime += 10;
+		}
 		while(!TimerFlag);
 		TimerFlag = 0;
 	}
