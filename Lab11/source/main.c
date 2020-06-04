@@ -68,6 +68,7 @@ int displaySMTick(int state) {
 					LCD_DisplayString(1, gameOver);
 					index1 = 9;
 					index2 = 29;
+					gameIndex = 1;
 					game = 0;
 					break;
 				}
