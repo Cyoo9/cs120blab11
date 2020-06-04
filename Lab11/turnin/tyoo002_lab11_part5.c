@@ -18,7 +18,7 @@
 #endif
 
 unsigned char obstacle = '#';   
-unsigned char gameOver[] = "GAME OVER";
+unsigned char gameOver[] = " !!GAME OVER!!                               ";
 unsigned char index1;
 unsigned char index2;
 unsigned char gameIndex = 1;
@@ -69,7 +69,7 @@ int displaySMTick(int state) {
 					index1 = 9;
 					index2 = 29;
 					game = 0;
-					break;
+					gameIndex = 1;
 				}
 					
 			}
